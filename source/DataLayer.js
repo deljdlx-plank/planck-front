@@ -5,6 +5,14 @@ Planck.DataLayer = function()
 };
 
 
+Planck.DataLayer.prototype.load = function(data)
+{
+    for(var name in data) {
+        this.set(name, data[name]);
+    }
+};
+
+
 Planck.DataLayer.prototype.set = function(name, value)
 {
     var entry = new Planck.DataLayerEntry();

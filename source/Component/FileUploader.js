@@ -1,10 +1,10 @@
-Planck.FileUploader = function(file)
+Planck.Component.FileUploader = function(file)
 {
     this.file = file;
 };
 
 
-Planck.FileUploader.prototype.send = function(url, callback)
+Planck.Component.FileUploader.prototype.send = function(url, callback)
 {
 
 

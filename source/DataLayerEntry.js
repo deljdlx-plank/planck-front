@@ -81,17 +81,29 @@ Planck.DataLayerEntry.prototype.getInstanceFromData = function(data)
             }
         }
 
-        /*
-         if(isset(dataEntry['foreignEntities'])) {
-         for(var property in dataEntry['foreignEntities']) {
-         if(isset(rootScope.prototype[property])) {
-         var foreignData = this.getValueFromDescriptor(dataEntry['foreignEntities'][property]);
-         instance[property] = foreignData;
-         }
-         }
-         }
-         */
+        if(isset(dataEntry['foreignEntities'])) {
 
+
+
+            for(var property in dataEntry['foreignEntities']) {
+                if(isset(instance[property])) {
+
+                    var foreignData = dataEntry['foreignEntities'][property];
+
+                    var formatedDataLayer = {
+                        data: foreignData,
+                        metadata: foreignData.metadata
+                    }
+
+
+                    var foreignInstance = this.getInstanceFromData(
+                        formatedDataLayer
+                    );
+
+                    instance[property] = foreignInstance;
+                }
+            }
+        }
 
 
         return instance;

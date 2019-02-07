@@ -68,6 +68,9 @@ Planck.Model.Entity.prototype.getValuesFromForm = function()
     $(inputs).each(function(index, input) {
         var value = $(input).val();
         var name = $(input).attr('name');
+        if(!name) {
+            return;
+        }
 
         //array value
         if(name.match(/\[\]/)) {
