@@ -2,16 +2,29 @@
 Planck.Model.Entity = function()
 {
 
+
+
+
 };
 
+Planck.Model.Entity.prototype.entityType = null;
 
-
+Planck.Model.Entity.prototype.fields = {};
 Planck.Model.Entity.prototype.values = {};
 Planck.Model.Entity.prototype.synchronized = false;
 Planck.Model.Entity.prototype.formElement = null;
 Planck.Model.Entity.prototype.inputSelector = '.form-data';
 Planck.Model.Entity.prototype.repository = new Planck.Model.Repository();
 Planck.Model.Entity.prototype.metadata = null;
+
+
+Planck.Model.Entity.prototype.primaryKeyFieldName = null;
+Planck.Model.Entity.prototype.labelFieldName = null;
+
+Planck.Model.Entity.prototype.events = {
+    store:[]
+};
+
 
 /**
  *
@@ -21,6 +34,72 @@ Planck.Model.Entity.prototype.setRepository = function(repository)
 {
    this.repository = repository;
    return this;
+};
+
+/**
+ *
+ * @returns {Planck.Model.Repository|*}
+ */
+Planck.Model.Entity.prototype.getRepository = function()
+{
+    this.repository.setEntity(this);
+   return this.repository;
+};
+
+
+Planck.Model.Entity.prototype.getType = function()
+{
+   return this.entityType;
+};
+
+
+Planck.Model.Entity.prototype.loadFields = function(descriptor)
+{
+    this.fields = descriptor;
+
+    for(var fieldName in this.fields) {
+
+        var fiedDescriptor = this.fields[fieldName];
+
+        if(fiedDescriptor.role == 'primaryKey') {
+            this.primaryKeyFieldName = fieldName;
+        }
+
+        if(fiedDescriptor.role == 'label') {
+            this.labelFieldName = fieldName;
+        }
+
+    }
+    return this;
+};
+
+
+Planck.Model.Entity.prototype.getLabel = function()
+{
+    return this.getValue(
+        this.labelFieldName
+    );
+};
+
+Planck.Model.Entity.prototype.getId = function()
+{
+    if(this.primaryKeyFieldName) {
+
+        return this.getValue(
+            this.primaryKeyFieldName
+        );
+    }
+    else {
+        return this.getValue('id');
+    }
+
+};
+
+
+Planck.Model.Entity.prototype.onStore = function(callback)
+{
+    this.events.store.push(callback);
+    return this;
 };
 
 
@@ -128,19 +207,46 @@ Planck.Model.Entity.prototype.delete = function(callback)
 
 Planck.Model.Entity.prototype.store = function(callback)
 {
-    this.repository.store(this, callback);
+    this.repository.store(this, function(descriptor) {
+        this.setValues(
+            descriptor.entity.getValues()
+        );
+
+        for(var i=0; i<this.events.store.length; i++) {
+            this.events.store[i](this);
+        }
+
+        if(callback) {
+            callback(descriptor);
+        }
+
+    }.bind(this));
 };
 
 
-Planck.Model.Entity.prototype.getId = function()
+Planck.Model.Entity.prototype.toJSON = function()
 {
-    return this.getValue('id');
+    return JSON.stringify(this.getValues());
 };
 
 
-Planck.Model.Entity.prototype.getValues = function()
+
+Planck.Model.Entity.prototype.getValues = function(removeNull)
 {
-    return this.values;
+    if(removeNull) {
+        var values = {}
+        for(var name in this.values) {
+            var value = this.values[name];
+            if(value !== null) {
+                values[name] = value;
+            }
+            return values;
+        }
+    }
+    else {
+        return this.values;
+    }
+
 };
 
 Planck.Model.Entity.prototype.setValue = function(key, value)
@@ -152,6 +258,14 @@ Planck.Model.Entity.prototype.setValue = function(key, value)
 Planck.Model.Entity.prototype.setValues = function(values)
 {
    this.values = values;
+
+   if(this.formElement) {
+        for(var key in this.values) {
+            var value = this.values[key];
+            this.formElement.find('*[name='+key+']').val(value);
+        }
+   }
+
    return this;
 };
 
