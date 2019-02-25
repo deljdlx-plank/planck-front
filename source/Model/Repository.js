@@ -28,7 +28,9 @@ Planck.Model.Repository.prototype.delete = function(entity, callback)
     Planck.ajax({
         url: this.services.delete.url,
         method:  this.services.delete.method,
-        data: this.getEntityDescriptor(entity),
+        data: {
+            entity: this.getEntityDescriptor(entity)
+        },
         success: function(response) {
 
 
